@@ -1,38 +1,59 @@
-import React, { useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import TransactionsList from "./TransactionsList";
 import Search from "./Search";
-import TransactionForm from "./AddTransactionForm";
+import TransactionForm from "./TransactionForm";
 
 function AccountContainer() {
- 
-  // const [SearchTerm,setSearchTerm]=useState('')
-const [transactionsEvent, setTransactionsEvent] = useState([])
-const [searchEvent, setSearchEvent] = useState("")
+  const [transactionsEvent, setTransactionsEvent] = useState([]);
+  const [searchEvent, setSearchEvent] = useState("");
 
-useEffect(() => {
-  fetch("http://localhost:8001/transactions")
-  .then(response => response.json())
-  .then((data) => setTransactionsEvent(data));
-}, [])
+  useEffect(() => {
+    fetch("http://localhost:8001/transactions")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch transactions");
+        }
+        return response.json();
+      })
+      .then((data) => setTransactionsEvent(data))
+      .catch((error) => console.error(error));
+  }, []);
 
-const getSearch = (search) =>{
-  return setTransactionsEvent(transactionsEvent.filter(transaction => transaction.description === search))
-}
+  const getSearch = (search) => {
+    setSearchEvent(search);
+  };
 
-function updatedTransactionEvents(addedTransactions) {
-  const updatedTransactionEventsArray=[...transactionsEvent,addedTransactions];
-  setTransactionsEvent(updatedTransactionEventsArray);
+  const filteredTransactions = transactionsEvent.filter(
+    (transaction) =>
+      transaction.description
+        .toLowerCase()
+        .includes(searchEvent.toLowerCase())
+  );
 
-  // const handleSearchTerm=(event)={
-  //   setSearchTerm(event.target.value);
-  // }
-}
+  function updatedTransactionEvents(addedTransactions) {
+    const updatedTransactionEventsArray = [
+      ...transactionsEvent,
+      addedTransactions,
+    ];
+    setTransactionsEvent(updatedTransactionEventsArray);
+  }
+
+  function handleDelete(id) {
+    const updatedTransactions = transactionsEvent.filter(
+      (transaction) => transaction.id !== id
+    );
+    setTransactionsEvent(updatedTransactions);
+  }
 
   return (
     <div>
       <Search getSearch={getSearch} />
-      <TransactionForm addedData ={updatedTransactionEvents} />
-      <TransactionsList transactionsEvent={transactionsEvent}/>
+      <TransactionForm addedData={updatedTransactionEvents} />
+
+      <TransactionsList
+        transactionsEvent={filteredTransactions}
+        onDelete={handleDelete}
+      />
     </div>
   );
 }

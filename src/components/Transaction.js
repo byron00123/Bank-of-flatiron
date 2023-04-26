@@ -1,13 +1,34 @@
-import React from "react";
+import React, { useState } from "react";
+import DeleteTransaction from "./DeleteTransaction";
 
-function Transaction({id, date, description,category,amount}) {
+function Transaction({
+  id,
+  date,
+  description,
+  category,
+  amount,
+  onDelete,
+}) {
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  function handleDelete(id) {
+    setIsDeleting(true);
+    onDelete(id);
+  }
+
   return (
     <tr>
-      <td>{id}</td>
       <td>{date}</td>
       <td>{description}</td>
       <td>{category}</td>
       <td>{amount}</td>
+      <td>
+        {!isDeleting ? (
+          <DeleteTransaction id={id} onDelete={handleDelete} />
+        ) : (
+          "Deleting..."
+        )}
+      </td>
     </tr>
   );
 }
